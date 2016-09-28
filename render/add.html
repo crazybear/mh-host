@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh" class="panel">
+<head>
+    <meta charset="utf-8">
+    <title>Add a group</title>
+    <link href="./stylesheets/panel.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+    <form id="app">
+        <label>name:</label>
+        <input v-model="name" type="text" />
+        <button v-on:click="add" class="add native-button">Add</button>
+    </form>
+    <script>
+        const Vue = require('vue');
+        const Electron = require('electron');
+        var app = new Vue({
+            el : "#app",
+            data : {
+                name : ''
+            },
+            methods : {
+                add : function(){
+                    Electron.ipcRenderer.send('host.addGroup', {
+                        name : this.name
+                    });
+                    window.close();
+                }
+            }
+        });
+    </script>
+<body>
+</html>

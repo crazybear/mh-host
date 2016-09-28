@@ -1,0 +1,17 @@
+{
+  "name": "mh-host",
+  "productName": "host",
+  "version": "1.0.0",
+  "description": "manager u host",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Crazy Bear",
+  "license": "MIT",
+  "dependencies": {
+    "codemirror": "^5.19.0",
+    "electron": "^1.4.1",
+    "vue": "^1.0.26"
+  }
+}

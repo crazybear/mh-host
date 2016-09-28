@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh" class="panel">
+<head>
+    <meta charset="utf-8">
+    <link href="./stylesheets/panel.css" rel="stylesheet" type="text/css"/>
+    <link href="../node_modules/codemirror/lib/codemirror.css" rel="stylesheet" type="text/css"/>
+    <link href="../node_modules/codemirror/theme/seti.css" rel="stylesheet" type="text/css"/>
+    <script src="../node_modules/codemirror/lib/codemirror.js"></script>
+</head>
+<body>
+    <div id="app" class="app-main">
+        <div class="group" >
+            <ul v-on:click="changeGroup($event)">
+                <li class="item" v-bind:class="{'on' : currentGroupId == item.id, 'used' : usedGroupId == item.id }" v-for="item in groups" track-by="id" data-id="{{item.id}}">
+                    {{ item.name }}
+                </li>
+            </ul>
+            <div class="group-option">
+                <span class="native-button" v-on:click="add">+</span>
+                <span class="native-button" v-on:click="del">-</span>
+            </div>
+        </div>
+        <div class="body">
+        </div>
+        <footer class="footer">
+            <button v-if="currentGroupId != 0" v-on:click="save"  class="save native-button">Use</button>
+        </footer>
+    </div>
+    <script>
+        const Os = require('os');
+        const Electron = require('electron');
+        const Vue = require('vue');
+
+        CodeMirror.defineMode('hosts', function(config) {
+            function tokenBase(stream, state) {
+                var sol = stream.sol();
+                var ch = stream.next();
+                if (sol && ch === '#') {
+                    stream.skipToEnd();
+                    return 'comment';
+                }
+                if (sol && /\d/.test(ch)) {
+                  stream.eatWhile(/[\d\.]/);
+                  return 'number';
+                }
+
+                if (/\w/.test(ch)) {
+                  stream.skipToEnd();
+                  return 'keyword';
+                }
+            }
+            function tokenize(stream, state) {
+                return tokenBase(stream, state);
+            };
+
+            return {
+                token: function(stream, state) {
+                    if (stream.eatSpace()){
+                        return null;
+                    }
+                    return tokenize(stream, state);
+                }
+            }
+        });
+
+        let myCodeMirror = CodeMirror(document.querySelector("#app .body"), {
+            mode:  "hosts",
+            lineNumbers : true,
+            theme : 'seti',
+            lineSeparator  : Os.EOL
+        });
+        let app = new Vue({
+            el : "#app",
+            data : {
+                groups : Electron.ipcRenderer.sendSync('host.getGroups'),
+                currentGroupId : -1,
+                usedGroupId : -1
+            },
+            computed : {
+                codeMirrorString : {
+                    cache : false,
+                    set : function(newValue){
+                        myCodeMirror.setValue(newValue);
+                    },
+                    get : function(){
+                        return myCodeMirror.getValue();
+                    }
+                }
+            },
+            methods : {
+                save : function(e){
+                    let res = useGroupById(this.currentGroupId);
+                    if(res.code == 0){
+                        this.usedGroupId = this.currentGroupId;
+                    }
+                },
+                add : function(){
+                    createAddWindow();
+                },
+                del : function(){
+                    let res = deleteGroup(this.currentGroupId);
+                },
+                changeGroup : function(e){
+                    if(e.target.tagName.toLowerCase() == 'li'){
+                        let id = e.target.getAttribute('data-id');
+                        changeGroupById(id);
+                    }
+                }
+            }
+        });
+
+        function loadGroupFile(id = 0){
+            return Electron.ipcRenderer.sendSync('host.readGroupFile', id);
+        }
+
+        function writeGroupFile(id = 0, data = ''){
+            return Electron.ipcRenderer.send('host.writeGroupFile', id, data);
+        }
+
+        function useGroupFile(id = 0, data = ''){
+            return Electron.ipcRenderer.sendSync('host.useGroupFile', id);
+        }
+
+        function createAddWindow(){
+            return Electron.ipcRenderer.send('host.createAddWindow');
+        }
+
+        function deleteGroup(id){
+            return Electron.ipcRenderer.sendSync('host.deleteGroup', {id : id});
+        }
+
+        function changeGroupById(id){
+            if(app.currentGroupId != id){
+                app.currentGroupId = -1;
+                app.codeMirrorString = loadGroupFile(id);
+                app.currentGroupId = id;
+                if(id == 0){
+                    myCodeMirror.setOption('readOnly', 'nocursor');
+                }else{
+                        myCodeMirror.setOption('readOnly', false);
+                }
+            }
+        }
+        function useGroupById(id){
+            return useGroupFile(id);
+        }
+        changeGroupById(0);
+        myCodeMirror.on('change', function(){
+            if(app.currentGroupId != -1){
+                writeGroupFile(app.currentGroupId, app.codeMirrorString);
+            }
+        });
+        Electron.ipcRenderer.on('host.groupChanged', ()=> {
+            app.groups = Electron.ipcRenderer.sendSync('host.getGroups');
+        });
+    </script>
+</body>
+</html>

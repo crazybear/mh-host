@@ -1,0 +1,62 @@
+@import "./native.css";
+:root{
+    --footer-height : 30px;
+    --group-list-width : 150px;
+    --system-sub-bg : #ddd;
+    --system-bg:#ccc;
+    --blue-bg:#07adfa;
+}
+html{
+    font-size:16px;
+    font-family: system, -apple-system, BlinkMacSystemFont, Helvetica Neue, Lucida Grande;
+}
+.group{
+    position:fixed;
+    top:0;
+    bottom:0;
+    width:var(--group-list-width);
+    background:var(--system-sub-bg);
+}
+.group .item{
+    height:30px;
+    line-height:30px;
+    text-indent:5px;
+    font-size:13px;
+    color:#333;
+}
+.group .item.on{
+    background:var(--system-bg);
+}
+.group .item.used{
+    color:var(--blue-bg);
+}
+.group .group-option{
+    position:absolute;
+    bottom:0;
+}
+.body{
+    position:fixed;
+    left:var(--group-list-width);
+    right:0;
+    top:0;
+    bottom:var(--footer-height);
+}
+.body .CodeMirror{
+    height:100%;
+}
+.footer{
+    position:fixed;
+    left:var(--group-list-width);
+    right:0;
+    bottom:0;
+    color:#FFF;
+    height: var(--footer-height);
+    background:var(--system-bg);
+}
+.footer .save{
+    position:absolute;
+    right:10px;
+    top: 5px;
+    width:100px;
+    height:20px;
+}

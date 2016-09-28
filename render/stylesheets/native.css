@@ -1,0 +1,15 @@
+@import "./reset.css";
+@import "./native-button.css";
+:root {
+    --native-bg: #ececec;
+    --native-font-size: 13px;
+    --native-text: #000;
+    --native-text-silent: 123, 123, 123; /* #7b7b7b */
+    --native-highlight: 21, 126, 251;    /* #157efb */
+    --native-hr: #d5d5d5;
+    --native-focus-start-size: 20px;
+
+    cursor: default;
+
+    -webkit-user-select: none;
+}
